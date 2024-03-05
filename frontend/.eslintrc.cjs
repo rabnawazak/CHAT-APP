@@ -15,6 +15,7 @@ module.exports = {
     'react/jsx-no-target-blank': 'off',
     'react-refresh/only-export-components': [
       'warn',
+      'react/prop-types', 'off', // 'off' is the default value, but we need to specify it to override the default value of 'warn
       { allowConstantExport: true },
     ],
   },
