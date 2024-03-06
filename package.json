@@ -6,7 +6,7 @@
   "scripts": {
     "server": "nodemon backend/server.js",
     "start": "node backend/server.js",
-    "build": "npm run build"
+    "build": "npm run build --prefix frontend"
   },
   "type": "module",
   "keywords": [],
