@@ -1,10 +1,1 @@
-{
-    "version":2,
-    "buildCommand": "npm install --production",
-    "routes": [
-        {
-            "src": "/(.*)",
-             "dest": "/"
-            }
-    ]
-}
+{ "version": 2, "rewrites": [{ "source": "/(.*)", "destination": "/api" }] }
