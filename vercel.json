@@ -1,6 +1,6 @@
 {
     "version":2,
-    "build": "npm install --production",
+    "buildCommand": "npm install --production",
     "routes": [
         {
             "src": "/(.*)",
