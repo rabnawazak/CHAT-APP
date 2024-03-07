@@ -8,7 +8,7 @@ export default defineConfig({
     port: 5000,
     proxy: {
       "/api": {
-        target: "https://main--chat-app-rak-api.netlify.app",
+        target: "https://chat-n9i7wuruo-rabnawazs-projects.vercel.app ",
         changeOrigin: true,
       },
     },
