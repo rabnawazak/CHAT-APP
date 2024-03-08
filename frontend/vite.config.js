@@ -8,7 +8,7 @@ export default defineConfig({
     port: 5000,
     // proxy: {
     //   "/api": {
-    //     target: "https://chat-n9i7wuruo-rabnawazs-projects.vercel.app ",
+    //     target: "http://localhost:5000",
     //     changeOrigin: true,
     //   },
     // },
