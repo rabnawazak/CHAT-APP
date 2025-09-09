@@ -8,36 +8,37 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5000", // change if frontend served from different origin
+    origin: "http://localhost:3000", // update if frontend served elsewhere
     methods: ["GET", "POST"],
   },
 });
 
-/**
- * Keep mapping from userId (your DB id) => socketId
- * This repo already uses user ids as "onlineUsers". We will keep same idea.
- */
+// userId -> socketId mapping
 const userSocketMap = {};
 
-// helper to get receiver socket id by userId
+// helper to get receiver socket id
 export const getRecieverSocketId = (recieverId) => {
   return userSocketMap[recieverId];
 };
 
 io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
+  console.log("✅ A user connected:", socket.id);
 
-  // client should emit "add-user" with its userId after connecting
-  socket.on("add-user", (userId) => {
-    // map user's DB id to this socket id
+  // get userId from query params (like old code)
+  const userId = socket.handshake.query.userId;
+  if (userId && userId !== "undefined") {
     userSocketMap[userId] = socket.id;
-    // broadcast online user list (array of userIds)
-    io.emit("getOnlineUsers", Object.keys(userSocketMap));
-    console.log("User added:", userId, "->", socket.id);
-  });
+    console.log("User registered:", userId, "->", socket.id);
+  }
 
-  // Signaling: Offer
-  // data: { to: <recipientUserId>, sdp: <offerSDP>, fromUserId: <optional> }
+  // broadcast online users to all
+  io.emit("getOnlineUsers", Object.keys(userSocketMap));
+
+  // --------------------
+  // WebRTC signaling
+  // --------------------
+
+  // Offer
   socket.on("offer", (data) => {
     try {
       const toSocketId = getRecieverSocketId(data.to);
@@ -49,12 +50,11 @@ io.on("connection", (socket) => {
         });
       }
     } catch (err) {
-      console.error("Error in offer handler:", err);
+      console.error("❌ Error in offer handler:", err);
     }
   });
 
-  // Signaling: Answer
-  // data: { to: <recipientUserId>, sdp: <answerSDP> }
+  // Answer
   socket.on("answer", (data) => {
     try {
       const toSocketId = getRecieverSocketId(data.to);
@@ -65,12 +65,11 @@ io.on("connection", (socket) => {
         });
       }
     } catch (err) {
-      console.error("Error in answer handler:", err);
+      console.error("❌ Error in answer handler:", err);
     }
   });
 
-  // Signaling: ICE candidates
-  // data: { to: <recipientUserId>, candidate: <iceCandidate> }
+  // ICE Candidate
   socket.on("ice-candidate", (data) => {
     try {
       const toSocketId = getRecieverSocketId(data.to);
@@ -81,19 +80,17 @@ io.on("connection", (socket) => {
         });
       }
     } catch (err) {
-      console.error("Error in ice-candidate handler:", err);
+      console.error("❌ Error in ice-candidate handler:", err);
     }
   });
 
-  // handle disconnect: remove user mapping if any
+  // --------------------
+  // Disconnect
+  // --------------------
   socket.on("disconnect", () => {
-    console.log("A user disconnected", socket.id);
-    // find the userId mapped to this socket and delete it
-    const mappedUser = Object.keys(userSocketMap).find(
-      (k) => userSocketMap[k] === socket.id
-    );
-    if (mappedUser) {
-      delete userSocketMap[mappedUser];
+    console.log("⚠️ A user disconnected:", socket.id);
+    if (userId && userSocketMap[userId]) {
+      delete userSocketMap[userId];
     }
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
