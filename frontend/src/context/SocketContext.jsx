@@ -15,25 +15,22 @@ export const SocketContextProvider = ({ children }) => {
   const { authUser } = useAuthContext();
 
   useEffect(() => {
-    // if user logged in, initialize socket
     if (authUser) {
-      // connect (change URL if your backend server runs on other host/port)
-      const s = io("http://localhost:5000"); // backend server where socket.io listens
-      setSocket(s);
-
-      s.on("connect", () => {
-        // let server know who this socket belongs to (use DB user id)
-        s.emit("add-user", authUser._id);
+      // connect with query param (backend expects userId here)
+      const s = io("http://localhost:5000", {
+        query: { userId: authUser._id },
       });
 
+      setSocket(s);
+
+      // listen for online users list
       s.on("getOnlineUsers", (users) => {
-        // users is array of userIds (strings)
         setOnlineUsers(users || []);
       });
 
-      // keep simple logging for debugging
+      // optional: error handling
       s.on("connect_error", (err) => {
-        console.warn("Socket connect_error:", err);
+        console.error("❌ Socket connection error:", err);
       });
 
       return () => {
@@ -41,7 +38,6 @@ export const SocketContextProvider = ({ children }) => {
         setSocket(null);
       };
     } else {
-      // if user logged out, cleanup socket
       if (socket) {
         socket.disconnect();
         setSocket(null);
